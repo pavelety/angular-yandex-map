@@ -37,7 +37,7 @@ angular.module('yaMap',[]).
                 callback[0]();
             }
         };
-        var loadUrl = '//api-maps.yandex.ru/'+yaMapSettings.version+'/?load=package.full&lang=' +
+        var loadUrl = 'https://api-maps.yandex.ru/'+yaMapSettings.version+'/?load=package.full&lang=' +
             yaMapSettings.lang +'&coordorder=' +yaMapSettings.order;
         var _loading = false;
         var loadScript = function(url, callback){
@@ -454,7 +454,7 @@ angular.module('yaMap',[]).
                                 map.geoObjects.events.remove('add',addEventHandler);
                                 var bounds = map.geoObjects.getBounds();
                                 if(bounds){
-                                    map.setBounds(bounds);
+                                    map.setBounds(bounds,{checkZoomRange:true});
                                 }
                             }, 300);
                         };
@@ -548,77 +548,113 @@ angular.module('yaMap',[]).
                 if(options && options.iconLayout){
                     options.iconLayout = templateLayoutFactory.get(options.iconLayout);
                 }
-                var createGeoObject = function(from, options){
-                    obj = new ymaps.GeoObject(from, options);
-                    //подписка на события
-                    for(var key in attrs){
-                        if(key.indexOf('yaEvent')===0){
-                            var parentGet=$parse(attrs[key]);
-                            yaSubscriber.subscribe(obj, parentGet,key,scope);
-                        }
-                    }
-                    ctrl.addGeoObjects(obj);
-                    scope.yaAfterInit({$target:obj});
-                    checkEditing(attrs.yaEdit);
-                    checkDrawing(attrs.yaDraw);
-                    checkShowBalloon(scope.yaShowBalloon);
-                };
-                scope.$watch('yaSource',function(newValue){
-                    if(newValue){
-                        if(obj){
-                            obj.geometry.setCoordinates(newValue.geometry.coordinates);
-                            if (obj.geometry.getType() === GEOMETRY_TYPES.CIRCLE) {
-                                obj.geometry.setRadius(newValue.geometry.radius);
-                            }
-                            var properties = newValue.properties;
-                            for(var key in properties){
-                                if(properties.hasOwnProperty(key)){
-                                    obj.properties.set(key, properties[key]);
+                var createGeoObject;
+                if (scope.yaSource.geometry.type === 'Point') {
+                    createGeoObject = function (from, optionse, rootMapCtrl, rootScope) {
+                        var ymap = rootMapCtrl.getMap();
+                        if (!rootScope.objectManager) {
+                            var it = ymap.geoObjects.getIterator();
+                            var gObj = it.getNext();
+                            while (gObj !== it.STOP_ITERATION) {
+                                if (gObj.options && gObj.options._name === "objectManager") {
+                                    ymap.geoObjects.remove(gObj);
+                                    break;
+                                } else {
+                                    gObj = it.getNext();
                                 }
                             }
-                        }else{
-                            createGeoObject(newValue,options);
+                            console.log('new objectManager');
+                            rootScope.objectManager = new ymaps.ObjectManager({
+                                // Чтобы метки начали кластеризоваться, выставляем опцию.
+                                clusterize: true,
+                                // ObjectManager принимает те же опции, что и кластеризатор.
+                                gridSize: 32,
+                                clusterDisableClickZoom: true
+                            });
+                            rootScope.mapsIndex = 0;
+                            rootScope.objectManager.clusters.options.set('preset', 'islands#invertedGrayClusterIcons');
+                            ymap.geoObjects.add(rootScope.objectManager);
                         }
-                    }else if(obj){
-                        ctrl.removeGeoObjects(obj);
-                    }
-                },angular.equals);
-                var checkEditing = function(editAttr){
-                    if(angular.isDefined(editAttr) && editAttr!=='false'){
-                        if(obj){
-                            obj.editor.startEditing()
+                        var obj = JSON.parse(JSON.stringify(from));
+                        obj.type = 'Feature';
+                        obj.id = ++rootScope.mapsIndex;
+                        obj.options = options;
+                        rootScope.objectManager.add(obj);
+                    };
+                    createGeoObject(scope.yaSource, options, ctrls[0], scope.$parent.$parent.$parent.$parent);
+                } else {
+                    createGeoObject = function (from, options) {
+                        obj = new ymaps.GeoObject(from, options);
+                        //подписка на события
+                        for (var key in attrs) {
+                            if (key.indexOf('yaEvent') === 0) {
+                                var parentGet = $parse(attrs[key]);
+                                yaSubscriber.subscribe(obj, parentGet, key, scope);
+                            }
                         }
-                    }else if(angular.isDefined(editAttr)){
-                        if(obj){
-                            obj.editor.stopEditing();
+                        ctrl.addGeoObjects(obj);
+                        scope.yaAfterInit({$target: obj});
+                        checkEditing(attrs.yaEdit);
+                        checkDrawing(attrs.yaDraw);
+                        checkShowBalloon(scope.yaShowBalloon);
+                    };
+                    scope.$watch('yaSource', function (newValue) {
+                        if (newValue) {
+                            if (obj) {
+                                obj.geometry.setCoordinates(newValue.geometry.coordinates);
+                                if (obj.geometry.getType() === GEOMETRY_TYPES.CIRCLE) {
+                                    obj.geometry.setRadius(newValue.geometry.radius);
+                                }
+                                var properties = newValue.properties;
+                                for (var key in properties) {
+                                    if (properties.hasOwnProperty(key)) {
+                                        obj.properties.set(key, properties[key]);
+                                    }
+                                }
+                            } else {
+                                createGeoObject(newValue, options);
+                            }
+                        } else if (obj) {
+                            ctrl.removeGeoObjects(obj);
                         }
-                    }
-                };
-                var checkDrawing = function(drawAttr){
-                    if(angular.isDefined(drawAttr) && drawAttr!=='false'){
-                        if(obj){
-                            obj.editor.startDrawing()
+                    }, angular.equals);
+                    var checkEditing = function (editAttr) {
+                        if (angular.isDefined(editAttr) && editAttr !== 'false') {
+                            if (obj) {
+                                obj.editor.startEditing()
+                            }
+                        } else if (angular.isDefined(editAttr)) {
+                            if (obj) {
+                                obj.editor.stopEditing();
+                            }
                         }
-                    }else if(angular.isDefined(drawAttr)){
-                        if(obj){
-                            obj.editor.stopDrawing();
+                    };
+                    var checkDrawing = function (drawAttr) {
+                        if (angular.isDefined(drawAttr) && drawAttr !== 'false') {
+                            if (obj) {
+                                obj.editor.startDrawing()
+                            }
+                        } else if (angular.isDefined(drawAttr)) {
+                            if (obj) {
+                                obj.editor.stopDrawing();
+                            }
                         }
-                    }
-                };
-                var checkShowBalloon = function(newValue){
-                    if(newValue){
-                        if(obj){
-                            obj.balloon.open();
+                    };
+                    var checkShowBalloon = function (newValue) {
+                        if (newValue) {
+                            if (obj) {
+                                obj.balloon.open();
+                            }
+                        } else {
+                            if (obj) {
+                                obj.balloon.close();
+                            }
                         }
-                    }else{
-                        if(obj){
-                            obj.balloon.close();
-                        }
-                    }
-                };
-                attrs.$observe('yaEdit',checkEditing);
-                attrs.$observe('yaDraw',checkDrawing);
-                scope.$watch('yaShowBalloon',checkShowBalloon);
+                    };
+                    attrs.$observe('yaEdit', checkEditing);
+                    attrs.$observe('yaDraw', checkDrawing);
+                    scope.$watch('yaShowBalloon', checkShowBalloon);
+                }
                 scope.$on('$destroy', function () {
                     if (obj) {
                         ctrl.removeGeoObjects(obj);

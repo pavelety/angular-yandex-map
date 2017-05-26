@@ -1,5 +1,5 @@
 {
     "name": "ya-map-enhanced",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "dependencies": { "angular": "~1.0.3" }
 }
