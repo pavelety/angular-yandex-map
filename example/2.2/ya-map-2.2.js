@@ -38,6 +38,10 @@ function YaMapCtrl($scope, mapApiLoad) {
   });
 }
 
+window.onYaMapLoad = function () {
+  console.log('onYaMapLoad');
+};
+
 angular.module('yaMap', []).constant('GEOMETRY_TYPES', {
   POINT: 'Point',
   LINESTRING: 'LineString',
@@ -54,13 +58,21 @@ angular.module('yaMap', []).constant('GEOMETRY_TYPES', {
       callback[0]();
     }
   };
-  window.onYaMapLoad = function () {
-    console.log('onYaMapLoad');
+  var onYaMapLoaded = function () {
     ymaps.ready(function () {
+      console.log('ymaps loaded');
       loaded = true;
       runCallbacks();
     });
   };
+  if (window['ymaps']) {
+    onYaMapLoaded();
+  } else {
+    window.onYaMapLoad = function () {
+      console.log('onYaMapLoad');
+      onYaMapLoaded();
+    };
+  }
   return function (callback) {
     callbacks.push(callback);
     if (loaded) {
