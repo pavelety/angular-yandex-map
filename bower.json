@@ -1,5 +1,5 @@
 {
     "name": "angular-yandex-maps",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "dependencies": { "angular": "~1.0.3" }
 }
