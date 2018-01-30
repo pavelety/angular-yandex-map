@@ -9,10 +9,12 @@ yaMap
 
 Установка
 -----
-1. Добавьте ссылку на файл ya-map-2.1.js или ya-map-2.0.js, в зависимости от требуемой версии, в файл вашего главного представления:
+1. Добавьте ссылку на файл ya-map-2.1.js, в зависимости от требуемой версии, в файл вашего главного представления.
 
+   Некоторые провайдеры (замечено на Теле2) блокировали загрузку скрипта через document.createElement("script"), надо добавлять в index.html.
    ```html
    <script src="js/ya-map-2.1.js"></script>
+   <script src="//api-maps.yandex.ru/2.1/?load=package.full&lang=ru_RU&coordorder=longlat&onload=onYaMapLoad" type="text/javascript"></script>
    ```
 2. Задайте для вашего приложения зависимость от модуля yaMap:
 
@@ -162,3 +164,9 @@ yaMap
 Директива yaDragger (в версии 2.1)
 -----
 Представляет собой перетаскиваемый на карту элемент управления. 
+
+Contribute
+-----
+npm i
+npm i -g grunt-cli
+grunt

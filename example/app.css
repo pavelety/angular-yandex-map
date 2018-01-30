@@ -17,6 +17,7 @@
     max-width: 60%;
 }
 .right{
+    height: 500px;
     width: 38%;
     float: left;
     max-width: 40%;

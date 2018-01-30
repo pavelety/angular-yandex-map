@@ -133,35 +133,11 @@
     </div>
     <div ng-view class="content"></div>
 </div>
-<script src="https://code.angularjs.org/1.4.2/angular.js"></script>
-<script src="https://code.angularjs.org/1.4.2/angular-route.js"></script>
+<script src="//code.angularjs.org/1.6.8/angular.js"></script>
+<script src="//code.angularjs.org/1.6.8/angular-route.js"></script>
 <script src="../ui-bootstrap-tpls-0.6.min.js"></script>
 <script src="2.2/app.js"></script>
 <script src="2.2/ya-map-2.2.js"></script>
-<!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function (d, w, c) {
-        (w[c] = w[c] || []).push(function() {
-            try {
-                w.yaCounter23401189 = new Ya.Metrika({id:23401189,
-                    clickmap:true,
-                    accurateTrackBounce:true});
-            } catch(e) { }
-        });
-
-        var n = d.getElementsByTagName("script")[0],
-                s = d.createElement("script"),
-                f = function () { n.parentNode.insertBefore(s, n); };
-        s.type = "text/javascript";
-        s.async = true;
-        s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js";
-
-        if (w.opera == "[object Opera]") {
-            d.addEventListener("DOMContentLoaded", f, false);
-        } else { f(); }
-    })(document, window, "yandex_metrika_callbacks");
-</script>
-<noscript><div><img src="//mc.yandex.ru/watch/23401189" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
+<script src="//api-maps.yandex.ru/2.1/?load=package.full&lang=ru_RU&coordorder=longlat&onload=onYaMapLoad"></script>
 </body>
 </html>
