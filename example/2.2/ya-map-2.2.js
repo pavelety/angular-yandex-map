@@ -202,6 +202,12 @@ angular.module('yaMap', []).constant('GEOMETRY_TYPES', {
                 $timeout(function () {
                   centerCoordinatesDeferred.resolve(result.geoObjects.position);
                 });
+              }, function (error) {
+                console.log('error defining center');
+                console.log(error);
+                $timeout(function () {
+                  centerCoordinatesDeferred.resolve([37.617499, 55.752023]);
+                });
               });
             });
           } else if (angular.isArray(center)) {
