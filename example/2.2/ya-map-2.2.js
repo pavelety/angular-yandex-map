@@ -73,8 +73,11 @@ angular.module('yaMap', []).constant('GEOMETRY_TYPES', {
     onYaMapLoaded();
   } else {
     window.onYaMapLoad = function () {
-      console.log('onYaMapLoad');
       onYaMapLoaded();
+      defineArrow();
+      ymaps.modules.require(['geoObject.Arrow'], function (Arrow) {
+        ymaps.Arrow = Arrow;
+      });
     };
   }
   return function (callback) {
